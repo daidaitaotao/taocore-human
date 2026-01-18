@@ -114,7 +114,6 @@ class VideoInteractionPipeline:
 
     def run(self) -> VideoResult:
         """Run the full video pipeline."""
-        import numpy as np
 
         with VideoAdapter(self.video_path) as video:
             metadata = video.metadata

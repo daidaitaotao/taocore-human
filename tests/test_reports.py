@@ -1,6 +1,5 @@
 """Tests for report generation."""
 
-import pytest
 from taocore_human.reports import ReportGenerator, AnalysisReport
 
 

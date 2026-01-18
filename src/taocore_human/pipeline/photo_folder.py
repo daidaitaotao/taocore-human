@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 import json
 
-from taocore import Graph, Node, Edge
+from taocore import Graph, Edge
 from taocore.metrics import BalanceMetric, ClusterMetric, HubMetric
 from taocore.solvers import EquilibriumSolver
 

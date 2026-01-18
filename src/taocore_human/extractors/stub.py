@@ -7,7 +7,6 @@ Useful for testing the pipeline and understanding output formats.
 
 from typing import List, Optional
 import numpy as np
-import uuid
 
 from taocore_human.extractors.base import (
     FaceExtractor,

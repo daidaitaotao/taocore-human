@@ -8,7 +8,7 @@ Key principles:
 - Make the basis for claims explicit
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -282,7 +282,7 @@ class ReportGenerator:
         parts.append(f"Graph contains {len(result.person_nodes)} nodes.")
 
         if result.hub_metrics:
-            parts.append(f"Hub analysis complete.")
+            parts.append("Hub analysis complete.")
 
         if result.cluster_metrics:
             num = result.cluster_metrics.get("num_clusters", 1)

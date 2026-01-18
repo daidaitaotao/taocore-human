@@ -1,6 +1,5 @@
 """Tests for node types."""
 
-import pytest
 from taocore_human.nodes import PersonNode, FrameNode, WindowNode, ContextNode
 from taocore_human.nodes.person import PersonFeatures
 from taocore_human.nodes.temporal import FrameFeatures, WindowFeatures
