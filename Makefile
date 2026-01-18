@@ -1,19 +1,21 @@
 .PHONY: help install install-dev install-all setup test test-cov lint format typecheck clean build publish
 
-PYTHON := python3
-PIP := $(PYTHON) -m pip
-PYTEST := $(PYTHON) -m pytest
-RUFF := $(PYTHON) -m ruff
-MYPY := $(PYTHON) -m mypy
+# Use uv for package management
+UV := uv
+PYTHON := uv run python
+PYTEST := uv run pytest
+RUFF := uv run ruff
+MYPY := uv run mypy
 
 help:
-	@echo "taocore-human - Development Commands"
+	@echo "taocore-human - Development Commands (using uv)"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install       Install package (basic)"
 	@echo "  make install-dev   Install with dev dependencies"
 	@echo "  make install-all   Install with all optional dependencies"
-	@echo "  make setup         Full dev setup (install-all + pre-commit)"
+	@echo "  make setup         Full dev setup (sync + install dev)"
+	@echo "  make sync          Sync dependencies from lockfile"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test          Run tests"
@@ -36,25 +38,29 @@ help:
 	@echo "  make clean-all     Remove all generated files"
 
 # Setup targets
+sync:
+	$(UV) sync
+
 install:
-	$(PIP) install -e .
+	$(UV) pip install -e .
 
 install-dev:
-	$(PIP) install -e ".[dev]"
+	$(UV) pip install -e ".[dev]"
 
 install-image:
-	$(PIP) install -e ".[image]"
+	$(UV) pip install -e ".[image]"
 
 install-video:
-	$(PIP) install -e ".[video]"
+	$(UV) pip install -e ".[video]"
 
 install-ml:
-	$(PIP) install -e ".[ml]"
+	$(UV) pip install -e ".[ml]"
 
 install-all:
-	$(PIP) install -e ".[dev,video,ml]"
+	$(UV) pip install -e ".[dev,video,ml]"
 
-setup: install-all
+setup:
+	$(UV) sync --all-extras
 	@echo "Development environment ready!"
 
 # Testing targets
@@ -91,13 +97,13 @@ check: lint typecheck test
 
 # Build targets
 build: clean
-	$(PYTHON) -m build
+	$(UV) build
 
 publish: build
-	twine upload dist/*
+	$(UV) publish
 
 publish-test: build
-	twine upload --repository testpypi dist/*
+	$(UV) publish --index testpypi
 
 # Clean targets
 clean:
