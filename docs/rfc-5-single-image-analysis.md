@@ -6,9 +6,11 @@
 
 ## Abstract
 
-A photograph freezes a moment. What can that frozen moment tell us about the person in it? About human nature itself? This RFC explores what information is extractable from a single image, what meaning that information carries, and what limits we must respect.
+A photograph freezes a moment. What can that frozen moment tell us about the person in it? About human nature itself?
 
-This is not a technical specification—it's a research question. The goal is to understand what observation can and cannot reveal about who we are.
+This question matters to me personally. I'm building software that extracts signals from images—faces, poses, spatial arrangements. The more I build, the more I wonder: what am I actually capturing? The technology works. But does it understand anything?
+
+This RFC explores what information is extractable from a single image, what meaning that information carries, and what limits we must respect.
 
 ## The Fundamental Tension
 
@@ -19,7 +21,9 @@ A photograph captures:
 
 We analyze images as if they contain truth. But a photo is already an interpretation—framed by the photographer, posed (or not) by the subject, selected from many possible moments.
 
-**Question**: When we extract information from an image, are we learning about the person, or about the moment? About human nature, or about the act of being photographed?
+**The question I keep asking**: When we extract information from an image, are we learning about the person, or about the moment? About human nature, or about the act of being photographed?
+
+I don't have a clean answer. But I think the question matters more than most technologists acknowledge.
 
 ## What Is Technically Extractable
 
@@ -36,7 +40,7 @@ These are measurable with high confidence:
 | Spatial arrangement | Who is near whom | High |
 | Orientation | Which way bodies/faces point | 70-80% |
 
-**What this tells us about human nature**: Not much directly. But it's the foundation for everything else.
+**What this means to me**: This is the layer I trust. We're measuring geometry—shapes, positions, distances. No interpretation required. A face is at coordinates (x, y). A body is in this pose. These are facts, not claims.
 
 ### Level 2: Physical Attributes
 
@@ -44,33 +48,42 @@ Extractable with varying reliability:
 
 | Signal | Reliability | Caveats |
 |--------|-------------|---------|
-| Apparent age | ±5-8 years | Varies by demographic |
-| Height (relative) | Moderate | Needs reference |
-| Body type | Low-moderate | Subjective categories |
+| Apparent age | ±5-8 years | Varies by demographic, worse for older faces |
+| Height (relative) | Moderate | Needs reference object |
 | Clothing style | Moderate | Cultural interpretation needed |
 | Accessories | High | Meaning is contextual |
 
-**What this tells us about human nature**:
-- We present ourselves through clothing and accessories
-- These presentations are culturally coded
-- Physical appearance carries social meaning we didn't choose
+**What this means to me**: Here we start sliding from measurement to interpretation. "Apparent age 35-45" is a range, not a fact. And even that range carries bias—models trained on Western faces estimate age differently for Asian faces. I've seen this in my own testing.
+
+We present ourselves through what we wear. But what that presentation *means* depends on culture, context, individual choice. A suit means different things at a funeral and a job interview.
 
 ### Level 3: Expression Signals
 
-This is where it gets complicated:
+This is where it gets complicated—and where the industry has gone badly wrong.
 
 | Signal | What We Can Detect | What We Cannot Infer |
 |--------|-------------------|---------------------|
 | Facial Action Units | Muscle movements (AU12: lip corner pull) | "Happiness" |
-| Eye openness | Measured in mm | Surprise vs. attention vs. lighting |
-| Mouth configuration | Open, closed, teeth visible | Genuine vs. social smile |
-| Brow position | Raised, lowered, furrowed | Confusion vs. concentration vs. sun |
+| Eye openness | Measured in mm | Surprise vs. attention vs. bright light |
+| Mouth configuration | Open, closed, teeth visible | Genuine vs. social vs. nervous smile |
+| Brow position | Raised, lowered, furrowed | Confusion vs. concentration vs. squinting |
 
-**What this tells us about human nature**:
-- Faces move in patterned ways
-- The same configuration can mean different things
-- We read faces constantly, but we read context too
-- A face without context is ambiguous
+**The data that changed my thinking**: Barrett et al. (2019) conducted a meta-analysis of over 1,000 studies on facial expressions. What they found:
+
+| Expression | Western Agreement | Cross-Cultural Agreement |
+|-----------|-------------------|-------------------------|
+| Happiness | 90% | 69% |
+| Sadness | 75% | 56% |
+| Anger | 74% | 59% |
+| Fear | 65% | 48% |
+| Disgust | 65% | 45% |
+| Surprise | 83% | 67% |
+
+**In plain terms**: If humans only agree 48% of the time on what "fear" looks like across cultures, then any algorithm trained on Western-labeled data is encoding one culture's interpretation as universal truth.
+
+**What this means to me**: The emotion recognition industry is built on sand. When a commercial API outputs "angry: 0.73," it's not detecting anger—it's detecting agreement with Western labelers' interpretation of posed expressions. That's a very different thing.
+
+I refuse to build emotion classification into taocore-human. We detect Action Units—muscle movements—and stop there. AU12 (lip corner puller) is measurable. "Happiness" is interpretation.
 
 ### Level 4: Social/Relational Signals (Multi-Person Images)
 
@@ -78,18 +91,16 @@ When multiple people appear:
 
 | Signal | What's Measurable | What It Might Indicate |
 |--------|------------------|----------------------|
-| Proximity | Distance in pixels/estimated cm | Relationship closeness (cultural) |
-| Touch | Presence and location | Intimacy level (cultural) |
-| Orientation | Facing toward/away | Engagement vs. distance |
-| Relative position | Center vs. edge, front vs. back | Status, role (maybe) |
-| Gaze direction | Where each person looks | Attention, deference (maybe) |
-| Synchrony | Similar poses/expressions | Rapport, group cohesion (maybe) |
+| Proximity | Distance in pixels/cm | Relationship closeness (but cultural) |
+| Touch | Presence and location | Intimacy level (but cultural) |
+| Orientation | Facing toward/away | Engagement (maybe) |
+| Relative position | Center vs. edge | Status, role (maybe) |
+| Gaze direction | Where each person looks | Attention (maybe) |
+| Synchrony | Similar poses/expressions | Rapport (maybe) |
 
-**What this tells us about human nature**:
-- We arrange ourselves spatially in meaningful ways
-- Groups have structure—centers, edges, hierarchies
-- Physical closeness often (not always) reflects emotional closeness
-- We unconsciously mirror people we're connected to
+**What this means to me**: Every "maybe" in that table is a warning. Distance between people varies by 30%+ across cultures (Sorokowska et al., 2017). Two people standing 80cm apart might be close friends in Sweden or casual acquaintances in Brazil.
+
+As an Asian American, I've lived this. Physical distance in my family doesn't map to emotional distance. We show love through acts, not closeness. Any system that interprets distance without cultural context will misread us.
 
 ### Level 5: Scene Context
 
@@ -100,24 +111,21 @@ The image contains more than people:
 | Location type | Indoor/outdoor, room type | Context of interaction |
 | Lighting | Natural/artificial, direction | Time of day, formality |
 | Objects | Furniture, tools, decorations | Activity, culture, status |
-| Background | Busy/clean, depth | Intentional vs. candid |
 | Image quality | Resolution, blur, noise | Professional vs. casual |
 
-**What this tells us about human nature**:
-- We exist in contexts that shape behavior
-- The setting is part of the meaning
-- Photos are often staged to project certain images
-- Candid photos reveal different things than posed ones
+**What this means to me**: Context is part of meaning. The same expression in a hospital room and at a party means different things. A single image gives us one context—but we often don't know what that context *is*.
 
 ## What a Single Image Cannot Tell Us
 
 ### Temporal Information
 
-- What happened before this moment
-- What happened after
-- Whether this expression lasted 0.1 seconds or 10 minutes
-- Whether this is typical or exceptional for this person
-- The trajectory of relationships shown
+- What happened one second before
+- What happened one second after
+- Whether this expression lasted a moment or an hour
+- Whether this is typical or exceptional
+- The trajectory of any relationships shown
+
+**What this means to me**: A photograph is a sample of size one. We can't know if it's representative. The "decisive moment" Cartier-Bresson talked about is selected from many moments—most of which told different stories.
 
 ### Internal States
 
@@ -127,6 +135,8 @@ The image contains more than people:
 - Whether an expression is genuine
 - Memory, anticipation, regret
 
+**What this means to me**: This is the gap I keep coming back to. We can see the surface. We cannot see the experience of being that person in that moment. The signal-to-meaning gap is infinite when it comes to internal states.
+
 ### Identity
 
 - Who these people "really are"
@@ -135,99 +145,50 @@ The image contains more than people:
 - Their history
 - Their future
 
+**What this means to me**: A photograph is not a person. This seems obvious, but the technology industry keeps forgetting it. We build systems that output personality scores, trustworthiness ratings, hiring recommendations—all from faces. It's phrenology with better math.
+
 ### The Photographer's Influence
 
 - Why this moment was chosen
 - What was cropped out
 - What moments weren't photographed
-- The relationship between photographer and subjects
 - Whether subjects knew they were being photographed
+
+**What this means to me**: There's always a perspective. The "objective" image is a myth. Someone chose this frame, this moment, this crop. The photograph is already an interpretation before any algorithm touches it.
 
 ## Types of Images and What They Reveal
 
-Different photo types offer different windows:
-
 ### Selfies
 
-**What's unique**: Subject controls the frame, angle, expression, timing.
+**What's unique**: Subject controls everything.
 
-**What this reveals about human nature**:
-- We curate our self-presentation
-- We have preferred angles and expressions
-- The gap between how we see ourselves and how others see us
-- The desire to control our image (literally)
+**What this reveals about human nature**: We curate our self-presentation. We have preferred angles. There's a gap between how we see ourselves and how others see us—and selfies let us close that gap, at least in one direction.
 
-**Extractable signals**: Expression (highly controlled), setting choice, filters/editing choices, frequency patterns over time.
+**What this means to me**: I find selfies fascinating as data. They're not candid—they're performances of self. But that performance *is* data about what we want to project.
 
 ### Candid Photos
 
 **What's unique**: Subject unaware or unposed.
 
-**What this reveals about human nature**:
-- Unguarded moments differ from posed ones
-- We have "resting" states we don't consciously control
-- Natural behavior in social settings
+**What this reveals about human nature**: We have unguarded states. Our "resting" face is different from our "camera" face.
 
-**Extractable signals**: More "authentic" expressions, natural spatial arrangements, uncontrolled context.
+**What this means to me**: Candid photos feel more "authentic," but that's partly illusion. The moment was still selected. The frame was still chosen. Less posed isn't the same as true.
 
 ### Group Photos (Posed)
 
-**What's unique**: Multiple people, explicit arrangement, everyone aware.
+**What's unique**: Multiple people, explicit arrangement.
 
-**What this reveals about human nature**:
-- Social structures made visible (who stands where)
-- Performance of relationships
-- Cultural norms about group presentation
-- Who is included and excluded
+**What this reveals about human nature**: Social structures made visible. Who stands where, who touches whom, who's centered, who's at the edge.
 
-**Extractable signals**: Spatial hierarchy, touch patterns, uniformity of expression, gaze alignment.
-
-### Group Photos (Candid)
-
-**What's unique**: Multiple people, natural arrangement, not posed for camera.
-
-**What this reveals about human nature**:
-- Organic social structure
-- Attention patterns (who looks at whom)
-- Natural proximity and touch
-- Subgroups and isolates
-
-**Extractable signals**: Interaction patterns, engagement levels, social network structure.
-
-### Professional Portraits
-
-**What's unique**: Maximum control, explicit self-presentation.
-
-**What this reveals about human nature**:
-- How we want to be seen professionally
-- Cultural standards of competence/approachability
-- The "official" self
-
-**Extractable signals**: Controlled expression, setting as identity signal, clothing as role marker.
+**What this means to me**: I've stood in many group photos where my position felt meaningful—and many where it was random. From the outside, you can't tell which is which.
 
 ### Family Photos
 
 **What's unique**: Intimate context, often spanning generations.
 
-**What this reveals about human nature**:
-- Family structure and roles
-- Generational patterns
-- Cultural family norms
-- Who is considered "family"
+**What this reveals about human nature**: Family structure and roles. Generational patterns. Who is considered "family."
 
-**Extractable signals**: Spatial arrangement by generation/role, resemblance patterns, formality level.
-
-### Photos of Strangers/Street Photography
-
-**What's unique**: No relationship between photographer and subject.
-
-**What this reveals about human nature**:
-- Public behavior and presentation
-- How we exist among strangers
-- Urban/social environment effects
-- Anonymous patterns
-
-**Extractable signals**: Crowd dynamics, public expression norms, environmental behavior.
+**What this means to me**: As someone who navigates between traditional family expectations and other parts of my life, family photos are complicated. They show one version of belonging. They don't show the tension.
 
 ## A Framework for Single-Image Analysis
 
@@ -243,7 +204,7 @@ Geometric:
 
 Physical:
   - Apparent ages: [ranges with uncertainty]
-  - Relative heights: [if reference available]
+  - Note: accuracy varies by demographic
 
 Expression:
   - AUs detected: [list with confidence]
@@ -252,7 +213,6 @@ Expression:
 Context:
   - Scene type: [indoor/outdoor, setting category]
   - Lighting: [quality assessment]
-  - Image type: [selfie, group, candid, portrait, etc.]
 ```
 
 ### 2. Note What's Missing
@@ -260,220 +220,101 @@ Context:
 ```
 Cannot determine:
   - Temporal context (single frame)
-  - Internal states
+  - Internal states (feelings, thoughts)
   - Relationship types
-  - Whether posed or candid (sometimes)
-  - Cultural context (unless explicitly provided)
+  - Cultural context (unless provided)
+  - Whether posed or candid
 ```
 
-### 3. Offer Pattern Observations (Not Interpretations)
+### 3. Offer Observations, Not Interpretations
 
 ```
-Observations:
+Say:
   - "3 people, triangular arrangement, Person A central"
-  - "All faces oriented toward camera"
-  - "AU6+AU12 detected on 2/3 faces" (not "2 people are happy")
-  - "Close proximity between Person B and C (<50cm)"
-  - "Formal attire, indoor setting with neutral background"
+  - "AU6+AU12 detected on 2/3 faces"
+  - "Close proximity between B and C (<50cm)"
 
-NOT:
+Don't say:
   - "This is a happy family"
   - "Person A is the leader"
   - "B and C are in a relationship"
 ```
 
-### 4. Suggest What More Data Would Reveal
+### 4. Acknowledge Uncertainty
 
-```
-With additional images:
-  - Temporal patterns (consistency of expressions)
-  - Relationship mapping (who appears with whom)
-  - Behavioral baselines (typical vs. atypical)
-
-With context:
-  - Cultural interpretation of distance/touch
-  - Occasion-appropriate behavior assessment
-  - Role-based arrangement analysis
-```
+Every output should include:
+- Confidence scores
+- What cannot be determined
+- Explicit refusal to interpret beyond the data
 
 ## What Single Images Teach Us About Human Nature
 
-After working through this, here's what I think a single image can genuinely tell us:
-
 ### 1. We Are Embodied
 
-We have faces, bodies, positions in space. These physical facts constrain and enable how we relate. A photograph captures this embodiment.
+We have faces, bodies, positions in space. A photograph captures this. It's not nothing.
 
 ### 2. We Are Social
 
-Even a photo of one person implies a photographer—another person. Multi-person images show us arranging ourselves relative to others, always in social space.
+Even a photo of one person implies a photographer. We exist in relation to being seen.
 
 ### 3. We Present Ourselves
 
-Posed or candid, we exist in relationship to being seen. We have front-stage and back-stage selves. Photos usually capture front-stage.
+Posed or candid, front-stage or back-stage, we're always in relationship to potential observers.
 
-### 4. Context Shapes Us
+### 4. Moments Are Not Summaries
 
-The same person in different settings shows different things. We are not context-independent. A single image gives us one context, one version.
+A photograph is a moment, not a life. Extracting "who someone is" from a single image is a category error.
 
-### 5. Moments Are Not Summaries
+**What this means to me**: I keep coming back to this. The temptation in building these systems is to claim more than we know. The responsible thing is to claim less.
 
-A photograph is a moment, not a life. Extracting "who someone is" from a single image is a category error. We can see a state, not a trait.
+### 5. Observation Is Not Understanding
 
-### 6. Observation Is Not Understanding
+We can measure many things. Measurement is not meaning. The signal-to-meaning gap is vast.
 
-We can measure many things. Measurement is not meaning. The signal-to-meaning gap is vast, and a single image provides maximum signal with minimum context for meaning.
+## Ethical Boundaries
 
-## Ethical Boundaries for Single-Image Analysis
+**Extract:**
+- Geometric facts
+- Action Units (not emotions)
+- Spatial arrangements
+- Scene context
 
-Given one image:
-
-**Do:**
-- Report geometric/physical measurements
-- Detect facial action units (muscle movements)
-- Describe spatial arrangements
-- Note scene context
-- Quantify uncertainty
-
-**Don't:**
-- Label emotions
-- Infer personality
-- Classify demographics (race, gender)
-- Predict behavior
-- Make identity claims
+**Refuse:**
+- Emotion labels
+- Personality inferences
+- Demographic classification (race, gender)
+- Identity claims
+- Predictions
 
 **Always:**
-- State what cannot be determined
-- Provide confidence intervals
-- Refuse interpretation when data is insufficient
-- Respect that the person in the image didn't consent to analysis
-
-## Implementation Considerations
-
-### SingleImageAnalyzer Class
-
-```python
-class SingleImageAnalyzer:
-    """Analyze a single image for human-nature-relevant signals."""
-
-    def analyze(self, image) -> SingleImageResult:
-        """
-        Extract what can be reliably measured.
-        Note what cannot be determined.
-        Refuse to interpret beyond the data.
-        """
-        pass
-
-    def what_we_can_see(self) -> List[Signal]:
-        """Geometric, physical, expression signals."""
-        pass
-
-    def what_we_cannot_know(self) -> List[Limitation]:
-        """Temporal, internal, identity limitations."""
-        pass
-
-    def observations_not_interpretations(self) -> List[Observation]:
-        """Pattern descriptions without meaning claims."""
-        pass
-```
-
-### Output Format
-
-```json
-{
-  "image_type": "group_posed",
-  "confidence": 0.75,
-
-  "people": [
-    {
-      "id": "person_0",
-      "face_detected": true,
-      "face_confidence": 0.92,
-      "landmarks_confidence": 0.88,
-      "pose_detected": true,
-      "pose_confidence": 0.71,
-      "apparent_age_range": [30, 45],
-      "action_units": {
-        "AU6": 0.8,
-        "AU12": 0.85
-      },
-      "position": {"x": 0.5, "y": 0.4},
-      "orientation": "toward_camera"
-    }
-  ],
-
-  "spatial_arrangement": {
-    "formation": "triangular",
-    "center_person": "person_0",
-    "proximity_matrix": [[0, 45, 80], [45, 0, 50], [80, 50, 0]]
-  },
-
-  "scene": {
-    "type": "indoor",
-    "lighting": "artificial",
-    "formality": "moderate"
-  },
-
-  "observations": [
-    "Central figure with 2 flanking figures",
-    "Similar AU patterns across all detected faces",
-    "Formal attire consistent across group"
-  ],
-
-  "cannot_determine": [
-    "Relationship types between individuals",
-    "Whether expressions are genuine or posed",
-    "Context/occasion of photograph",
-    "Temporal state (before/after this moment)"
-  ],
-
-  "interpretation_allowed": false,
-  "reason": "Single image provides insufficient context for interpretation"
-}
-```
-
-## Open Questions
-
-1. **Should single-image analysis ever allow interpretation?**
-   - Current position: No. Single images lack context for meaning.
-   - Counter-argument: Some signals are strong enough to interpret.
-   - My instinct: Err on the side of humility.
-
-2. **How do we handle images with cultural context provided?**
-   - If we know the culture, can we interpret distance/touch?
-   - Risk: Cultural stereotyping
-   - Possible approach: Offer cultural-context-dependent observations, clearly labeled.
-
-3. **What about repeated single-image analysis?**
-   - Analyzing many single images of the same person over time
-   - This becomes temporal data through aggregation
-   - Different from true video/sequence analysis
-
-4. **The consent problem**
-   - People in photos didn't consent to computational analysis
-   - How does this constrain what we should extract?
-   - Current position: Extract patterns, refuse identities.
+- State uncertainty
+- Note what cannot be determined
+- Respect that subjects didn't consent to analysis
 
 ## Conclusion
 
 A single image is a gift and a trap. It gives us a frozen moment—rich in visual information, empty of context. We can measure much. We can understand little.
 
-What images teach us about human nature:
-- We are visible, embodied, positioned in space
-- We present ourselves, consciously and unconsciously
-- We exist in relationships, even when alone (there's always a photographer)
-- Moments are not summaries; a photograph is not a person
-
-taocore-human should extract what's reliable, note what's missing, and refuse to pretend that measurement is understanding.
+What this means for taocore-human:
+- Extract what's reliable
+- Note what's missing
+- Refuse to pretend measurement is understanding
 
 The person in the photograph is more than the photograph. Always.
+
+There's a Taoist idea I keep returning to: *the Tao that can be named is not the eternal Tao*. Maybe it's the same with people. The self that can be observed is not the complete self. What we capture is real—but it's a shadow on the wall, not the thing casting it.
+
+I build tools that watch. And I've learned that watching has limits.
 
 ---
 
 ## References
 
-See RFC-4 for technical references on extraction methods.
+Barrett, L. F., Adolphs, R., Marsella, S., Martinez, A. M., & Pollak, S. D. (2019). Emotional expressions reconsidered: Challenges to inferring emotion from human facial movements. *Psychological Science in the Public Interest*, 20(1), 1-68.
+
+Sorokowska, A., et al. (2017). Preferred interpersonal distances: A global comparison. *Journal of Cross-Cultural Psychology*, 48(4), 577-592.
 
 For philosophical grounding, see:
-- "Decomposing the Observable Self" - contextself.com/journal
-- "The Relational Self" - contextself.com/journal
+- [Decomposing the Observable Self](https://contextself.com/journal/decomposing-the-observable-self)
+- [The Relational Self](https://contextself.com/journal/the-relational-self)
+- [On Observing Without Judging](https://contextself.com/journal/on-observing-without-judging)
