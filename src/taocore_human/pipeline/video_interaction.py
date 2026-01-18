@@ -14,7 +14,7 @@ from typing import Dict, List, Optional, Union
 import json
 
 from taocore import Graph, Node, Edge
-from taocore.metrics import BalanceMetrics, FlowMetrics, ClusterMetrics, HubMetrics
+from taocore.metrics import BalanceMetric, FlowMetric, ClusterMetric, HubMetric
 from taocore.solvers import EquilibriumSolver
 
 from taocore_human.adapters import VideoAdapter
@@ -373,7 +373,7 @@ class VideoInteractionPipeline:
         if not graph.nodes:
             return None
         try:
-            return BalanceMetrics().compute(graph)
+            return BalanceMetric().compute(graph)
         except Exception:
             return None
 
@@ -381,7 +381,7 @@ class VideoInteractionPipeline:
         if len(window_graphs) < 2:
             return None
         try:
-            return FlowMetrics().compute_sequence(window_graphs)
+            return FlowMetric().compute_sequence(window_graphs)
         except Exception:
             return None
 
@@ -389,7 +389,7 @@ class VideoInteractionPipeline:
         if not graph.nodes or len(graph.nodes) < 2:
             return None
         try:
-            return ClusterMetrics().compute(graph)
+            return ClusterMetric().compute(graph)
         except Exception:
             return None
 
@@ -397,7 +397,7 @@ class VideoInteractionPipeline:
         if not graph.nodes:
             return None
         try:
-            return HubMetrics().compute(graph)
+            return HubMetric().compute(graph)
         except Exception:
             return None
 

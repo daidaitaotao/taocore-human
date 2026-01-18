@@ -1,7 +1,10 @@
 .PHONY: help install install-dev install-all setup test test-cov lint format typecheck clean build publish
 
 PYTHON := python3
-PIP := pip
+PIP := $(PYTHON) -m pip
+PYTEST := $(PYTHON) -m pytest
+RUFF := $(PYTHON) -m ruff
+MYPY := $(PYTHON) -m mypy
 
 help:
 	@echo "taocore-human - Development Commands"
@@ -56,32 +59,32 @@ setup: install-all
 
 # Testing targets
 test:
-	pytest tests/ -v
+	$(PYTEST) tests/ -v
 
 test-cov:
-	pytest tests/ -v --cov=src/taocore_human --cov-report=term-missing --cov-report=html
+	$(PYTEST) tests/ -v --cov=src/taocore_human --cov-report=term-missing --cov-report=html
 
 test-verbose:
-	pytest tests/ -vv -s
+	$(PYTEST) tests/ -vv -s
 
 test-fast:
-	pytest tests/ -v -x --ff
+	$(PYTEST) tests/ -v -x --ff
 
 # Code quality targets
 lint:
-	ruff check src/ tests/
+	$(RUFF) check src/ tests/
 
 lint-fix:
-	ruff check src/ tests/ --fix
+	$(RUFF) check src/ tests/ --fix
 
 format:
-	ruff format src/ tests/
+	$(RUFF) format src/ tests/
 
 format-check:
-	ruff format src/ tests/ --check
+	$(RUFF) format src/ tests/ --check
 
 typecheck:
-	mypy src/taocore_human
+	$(MYPY) src/taocore_human
 
 check: lint typecheck test
 	@echo "All checks passed!"

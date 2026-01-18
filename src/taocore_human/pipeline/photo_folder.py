@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Union
 import json
 
 from taocore import Graph, Node, Edge
-from taocore.metrics import BalanceMetrics, ClusterMetrics, HubMetrics
+from taocore.metrics import BalanceMetric, ClusterMetric, HubMetric
 from taocore.solvers import EquilibriumSolver
 
 from taocore_human.adapters import ImageFolderAdapter
@@ -296,8 +296,8 @@ class PhotoFolderPipeline:
         if not graph.nodes:
             return None
         try:
-            metrics = BalanceMetrics()
-            return metrics.compute(graph)
+            metric = BalanceMetric()
+            return metric.compute(graph)
         except Exception:
             return None
 
@@ -306,8 +306,8 @@ class PhotoFolderPipeline:
         if not graph.nodes or len(graph.nodes) < 2:
             return None
         try:
-            metrics = ClusterMetrics()
-            return metrics.compute(graph)
+            metric = ClusterMetric()
+            return metric.compute(graph)
         except Exception:
             return None
 
@@ -316,8 +316,8 @@ class PhotoFolderPipeline:
         if not graph.nodes:
             return None
         try:
-            metrics = HubMetrics()
-            return metrics.compute(graph)
+            metric = HubMetric()
+            return metric.compute(graph)
         except Exception:
             return None
 
