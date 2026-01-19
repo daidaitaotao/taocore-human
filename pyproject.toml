@@ -47,11 +47,19 @@ video = [
     "pillow>=9.0.0",
     "opencv-python>=4.5.0",
 ]
+mediapipe = [
+    "mediapipe>=0.10.0",
+]
+clip = [
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+]
 ml = [
     "pillow>=9.0.0",
     "opencv-python>=4.5.0",
     "torch>=2.0.0",
     "torchvision>=0.15.0",
+    "transformers>=4.30.0",
 ]
 dev = [
     "pytest>=7.0.0",

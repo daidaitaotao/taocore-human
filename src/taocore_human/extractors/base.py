@@ -45,6 +45,18 @@ class FaceDetection(Detection):
     head_pitch: Optional[float] = None
     head_roll: Optional[float] = None
 
+    # Full blendshapes / Action Units (52 values from MediaPipe)
+    blendshapes: Optional[Dict[str, float]] = None
+
+    # Eye features (derived from landmarks/blendshapes)
+    left_eye_openness: Optional[float] = None  # 0 to 1
+    right_eye_openness: Optional[float] = None  # 0 to 1
+    gaze_direction: Optional[tuple[float, float]] = None  # normalized (x, y) offset from center
+
+    # Mouth features
+    mouth_openness: Optional[float] = None  # 0 to 1
+    jaw_open: Optional[float] = None  # 0 to 1
+
 
 @dataclass
 class PoseDetection(Detection):
