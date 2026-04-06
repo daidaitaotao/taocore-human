@@ -127,3 +127,26 @@ Media → Feature Extraction → Nodes/Edges → Graph(s)
 ## License
 
 MIT
+## CLI Quick Start
+
+1. Install editable (dev):
+```bash
+cd /Users/dadatoto/taocore-human
+python -m pip install -e .
+```
+
+2. Analyze a folder of photos:
+```bash
+taocore-human photo-folder /path/to/photos
+```
+
+3. Analyze a video:
+```bash
+taocore-human video /path/to/video.mp4
+```
+
+4. Save JSON output to a file:
+```bash
+taocore-human photo-folder /path/to/photos --output /tmp/taocore_result.json
+```
+
